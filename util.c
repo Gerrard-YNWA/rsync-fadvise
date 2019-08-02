@@ -52,39 +52,39 @@ int curr_dir_depth; /* This is only set for a sanitizing daemon. */
 #ifdef WITH_DROP_CACHE
 #define FADV_BUFFER_SIZE  1024*1024*16
 
-static struct stat fadv_fd_stat[1024];
-static off_t fadv_fd_pos[1024];
-static unsigned char *fadv_core_ptr[1024];
+static struct stat fadv_fd_stat[1024*50];
+static off_t fadv_fd_pos[1024*50];
+static unsigned char *fadv_core_ptr[1024*50];
 static int fadv_max_fd = 0;
 static int fadv_close_ring_tail = 0;
 static int fadv_close_ring_head = 0;
 static int fadv_close_ring_size = 0;
-static int fadv_close_ring[1024];
+static int fadv_close_ring[1024*50];
 static int fadv_close_buffer_size = 0;
 static size_t fadv_pagesize;
 
 static void fadv_fd_init_func(void)
 {
-	static int fadv_fd_init = 0;
-        if (fadv_fd_init == 0){
-                int i;
-                fadv_fd_init = 1;
-		fadv_pagesize = getpagesize();
-		if (fadv_max_fd == 0){
-			fadv_max_fd = sysconf(_SC_OPEN_MAX) - 20;
-			if (fadv_max_fd < 0)
-				fadv_max_fd = 1;
-			if (fadv_max_fd > 1000)
-				fadv_max_fd = 1000;
-		}
-                for (i=0;i<fadv_max_fd;i++){
-                        fadv_fd_pos[i] = 0;
-                        fadv_fd_stat[i].st_dev = 0;
-                        fadv_fd_stat[i].st_ino = 0;
-                        fadv_fd_stat[i].st_size = 0;
-			fadv_core_ptr[i] = NULL;
-                }
+    static int fadv_fd_init = 0;
+    if (fadv_fd_init == 0){
+        int i;
+        fadv_fd_init = 1;
+        fadv_pagesize = getpagesize();
+        if (fadv_max_fd == 0){
+            fadv_max_fd = sysconf(_SC_OPEN_MAX) - 20;
+            if (fadv_max_fd < 0)
+                fadv_max_fd = 1;
+            if (fadv_max_fd > 1000)
+                fadv_max_fd = 1024*50 - 4;
         }
+        for (i=0;i<fadv_max_fd;i++){
+            fadv_fd_pos[i] = 0;
+            fadv_fd_stat[i].st_dev = 0;
+            fadv_fd_stat[i].st_ino = 0;
+            fadv_fd_stat[i].st_size = 0;
+            fadv_core_ptr[i] = NULL;
+        }
+    }
 }
 
 static void fadv_get_core(int fd)
